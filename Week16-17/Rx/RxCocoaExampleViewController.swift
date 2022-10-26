@@ -21,11 +21,27 @@ class RxCocoaExampleViewController: UIViewController {
     @IBOutlet weak var signEmail: UITextField!
     @IBOutlet weak var signButton: UIButton!
     
-    let disposeBag = DisposeBag()
+    @IBOutlet weak var nicknameLabel: UILabel!
+    var nickname = Observable.just("Sani")
+    
+    var disposeBag = DisposeBag()
+//    var disposeBag: DisposeBag? = DisposeBag()
     
     // MARK: - Life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+//        disposeBag = nil  // var disposeBag: DisposeBag? = DisposeBag()일 경우 가능
+        
+        nickname
+            .bind(to: nicknameLabel.rx.text)
+            .disposed(by: disposeBag)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+//            self.nickname = "HELLO"
+        }
+        
+        
 
         setTableView()
         setPickerView()
@@ -34,6 +50,8 @@ class RxCocoaExampleViewController: UIViewController {
         setOperator()
     }
     
+    // ViewController가 deinit되면, 알아서 disposed도 동작한다.
+    // 또는 DisposeBag() 객체를 새롭게 넣어주거나, nil 할당 => 예외 케이스! (예: rootVC에 interval이 있다면?)
     deinit {
         print("RxCocoaExampleViewController deinit")
     }
@@ -146,7 +164,15 @@ class RxCocoaExampleViewController: UIViewController {
             .disposed(by: disposeBag)
         
         signButton.rx.tap      // touchUpInside
-            .subscribe { _ in  // 이런 상황에서는 tap 시 bind할 객체가 없기 때문에 얼럿을 띄우거나 화면 전환 등의 기능은 subscribe로 해결하는 경우가 많다
+            // 이런 상황에서는 tap 시 bind할 객체가 없기 때문에 얼럿을 띄우거나 화면 전환 등의 기능은 subscribe로 해결하는 경우가 많다
+//            .subscribe { [weak self] _ in  // 기존 weak self 코드
+//                self?.showAlert()
+//            }
+        
+        
+//            .subscribe(onNext: <#T##((Void) -> Void)?##((Void) -> Void)?##(Void) -> Void#>)  // withUnretained 전 매개변수 1 개
+            .withUnretained(self)
+            .subscribe { vc, _ in                    // withUnretained 후 매개변수 2 개
                 self.showAlert()
             }
             .disposed(by: disposeBag)
@@ -173,11 +199,12 @@ class RxCocoaExampleViewController: UIViewController {
                 print("repeat disposed")    // dispose 되었을 때 출력되는 정도
             }
             .disposed(by: disposeBag)  // complete나 error가 되면 자동으로 dispose가 실행된다
+//            .dispose()
         
         
         // 타이머처럼 1초에 하나씩 0부터 찍힌다
-//        Observable<Int>.interval(.seconds(1), scheduler: MainScheduler.instance)
-        let intervalObservable = Observable<Int>.interval(.seconds(1), scheduler: MainScheduler.instance)
+        Observable<Int>.interval(.seconds(1), scheduler: MainScheduler.instance)
+//        let intervalObservable = Observable<Int>.interval(.seconds(1), scheduler: MainScheduler.instance)
             .subscribe { value in
                 print("interval - \(value)")
             } onError: { error in
@@ -187,11 +214,33 @@ class RxCocoaExampleViewController: UIViewController {
             } onDisposed: {
                 print("interval disposed")
             }
+            .disposed(by: disposeBag)
 //            .disposed(by: disposeBag)  // 끝나지 않음. deinit되지 않기 때문에 수동으로 dispose 시켜야 한다
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-            intervalObservable.dispose()  // 수동으로 정지
-        }
+//        let intervalObservable2 = Observable<Int>.interval(.seconds(1), scheduler: MainScheduler.instance)
+//            .subscribe { value in
+//                print("interval - \(value)")
+//            } onError: { error in
+//                print("interval - \(error)")
+//            } onCompleted: {
+//                print("interval completed")
+//            } onDisposed: {
+//                print("interval disposed")
+//            }
+//            .disposed(by: disposeBag)
+        
+        // DisposeBag: 리소스 해제 관리
+            // 1. 시퀀스 끝날 때 알아서 해제 (하지만 bind는 complete나 error 이벤트가 없음)
+            // 2. class deinit이 잘 된다면 disposeBag이 호출되면서 자동으로 해제될 수 있음 (자동 해제되는 요소의 예: bind 같은 객체에 해당)
+            // 3. dispose 직접 호출 -> dispose(): 구독하는 것마다 별도로 관리!
+            // 4. DisposeBag을 새롭게 할당하거나, nil 전달
+        
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+////            intervalObservable.dispose()  // 수동으로 정지
+////            intervalObservable2.dispose()
+//
+//            self.disposeBag = DisposeBag()
+//        }
         
         
         
