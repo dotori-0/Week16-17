@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0A372164290788BA0036A6DE /* SubjectViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A372163290788BA0036A6DE /* SubjectViewModel.swift */; };
+		0A3721662908CBAC0036A6DE /* SubscribeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A3721652908CBAC0036A6DE /* SubscribeViewController.swift */; };
 		0A43443429077A5300955021 /* SubjectViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A43443329077A5300955021 /* SubjectViewController.swift */; };
 		0A477BF128FE2DCD001D7206 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A477BF028FE2DCD001D7206 /* AppDelegate.swift */; };
 		0A477BF328FE2DCD001D7206 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A477BF228FE2DCD001D7206 /* SceneDelegate.swift */; };
@@ -35,6 +36,7 @@
 
 /* Begin PBXFileReference section */
 		0A372163290788BA0036A6DE /* SubjectViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectViewModel.swift; sourceTree = "<group>"; };
+		0A3721652908CBAC0036A6DE /* SubscribeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscribeViewController.swift; sourceTree = "<group>"; };
 		0A43443329077A5300955021 /* SubjectViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectViewController.swift; sourceTree = "<group>"; };
 		0A477BED28FE2DCD001D7206 /* Week16-17.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Week16-17.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0A477BF028FE2DCD001D7206 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -137,6 +139,7 @@
 				0AC16A57290625BA0032E2D6 /* RxCocoaExampleViewController.swift */,
 				0A43443329077A5300955021 /* SubjectViewController.swift */,
 				0A372163290788BA0036A6DE /* SubjectViewModel.swift */,
+				0A3721652908CBAC0036A6DE /* SubscribeViewController.swift */,
 			);
 			path = Rx;
 			sourceTree = "<group>";
@@ -224,6 +227,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0A3721662908CBAC0036A6DE /* SubscribeViewController.swift in Sources */,
 				0A864AA728FF9067003BB192 /* DiffableViewController.swift in Sources */,
 				0A864AB02900D23E003BB192 /* NewsViewModel.swift in Sources */,
 				0A864AB42900ED6F003BB192 /* DiffableViewModel.swift in Sources */,

@@ -6,6 +6,8 @@
 //
 
 import UIKit
+import RxSwift
+import RxCocoa
 
 class NewsViewController: UIViewController {
 
@@ -15,6 +17,7 @@ class NewsViewController: UIViewController {
     @IBOutlet weak var loadButton: UIButton!
     
     var viewModel = NewsViewModel()
+    let disposeBag = DisposeBag()
     
     var dataSource: UICollectionViewDiffableDataSource<Int, News.NewsItem>!
     
@@ -24,7 +27,7 @@ class NewsViewController: UIViewController {
         configureHierarchy()
         configureDataSource()
         bindData()
-        configureViews()
+//        configureViews()
     }
     
     func bindData() {
@@ -34,38 +37,59 @@ class NewsViewController: UIViewController {
             self.numberTextField.text = value
         }
         
-        viewModel.dummyNews.bind { item in
+        viewModel.dummyNews
+            .withUnretained(self)
+            .bind { (vc, item) in  // 네트워크 통신도 아니고 실패할 일이 없기 때문에 bind로만 처리
             var snapshot = NSDiffableDataSourceSnapshot<Int, News.NewsItem>()
             snapshot.appendSections([0])
     //        snapshot.appendItems(["아아", "따아", "아바라"])
 //            snapshot.appendItems(News.items)
             snapshot.appendItems(item)
-            self.dataSource.apply(snapshot, animatingDifferences: true)  // dataSource 초기화 후에 apply하기
+            vc.dataSource.apply(snapshot, animatingDifferences: true)  // dataSource 초기화 후에 apply하기
+        }
+        .disposed(by: disposeBag)
+        
+        loadButton
+            .rx
+            .tap
+            .withUnretained(self)
+            .bind { (vc, _) in
+                vc.viewModel.loadSample()
+            }
+        
+        resetButton
+            .rx
+            .tap
+            .withUnretained(self)
+            .bind { (vc, _) in
+                vc.viewModel.resetSample()
+            }
+                
         }
     }
     
-    func configureViews() {  // 메서드로 빼서 역할 분리
-        numberTextField.addTarget(self, action: #selector(numberTextFieldChanged), for: .editingChanged)
-        resetButton.addTarget(self, action: #selector(resetButtonTapped), for: .touchUpInside)
-        loadButton.addTarget(self, action: #selector(loadButtonTapped), for: .touchUpInside)
-    }
-
-    @objc func numberTextFieldChanged() {
-        print(#function)
-        guard let text = numberTextField.text else { return }
-        viewModel.changePageNumberFormat(text: text)
-    }
-    
-    @objc func resetButtonTapped() {
-        print(#function)
-        viewModel.resetSample()
-    }
-    
-    @objc func loadButtonTapped() {
-        print(#function)
-        viewModel.loadSample()
-    }
-}
+//    func configureViews() {  // 메서드로 빼서 역할 분리
+//        numberTextField.addTarget(self, action: #selector(numberTextFieldChanged), for: .editingChanged)
+//        resetButton.addTarget(self, action: #selector(resetButtonTapped), for: .touchUpInside)
+//        loadButton.addTarget(self, action: #selector(loadButtonTapped), for: .touchUpInside)
+//    }
+//
+//    @objc func numberTextFieldChanged() {
+//        print(#function)
+//        guard let text = numberTextField.text else { return }
+//        viewModel.changePageNumberFormat(text: text)
+//    }
+//
+//    @objc func resetButtonTapped() {
+//        print(#function)
+//        viewModel.resetSample()
+//    }
+//
+//    @objc func loadButtonTapped() {
+//        print(#function)
+//        viewModel.loadSample()
+//    }
+//}
 
 extension NewsViewController {
     func configureHierarchy() {  // addSubView, CollectionView init, SnapKit 구성 등을 이런 메서드로 한다
