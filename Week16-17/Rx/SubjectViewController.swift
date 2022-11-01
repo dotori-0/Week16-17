@@ -33,10 +33,60 @@ class SubjectViewController: UIViewController {
         
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "ContactCell")
         
-        viewModel.list
-            .bind(to: tableView.rx.items(cellIdentifier: "ContactCell", cellType: UITableViewCell.self)) { (row, element, cell) in
-                cell.textLabel?.text = "\(element.name): \(element.age)세 (\(element.number))"
+        // Input & Output
+        let input = SubjectViewModel.Input(addTap: addButton.rx.tap,
+                                           resetTap: resetButton.rx.tap,
+                                           newTap: newButton.rx.tap,
+                                           searchText: searchBar.rx.text)
+        
+        let output = viewModel.transform(input: input)
+        
+        output.list
+            .drive(tableView.rx.items(cellIdentifier: "ContactCell", cellType: UITableViewCell.self)) { (row, element, cell) in
+                cell.textLabel?.text = "\(element.name): \(element.age)세, \(element.number)"
             }
+            .disposed(by: disposeBag)
+
+        output.addTap
+            .withUnretained(self)
+            .subscribe(onNext: { (vc, _) in
+                vc.viewModel.fetchData()
+            })
+            .disposed(by: disposeBag)
+        
+        output.resetTap
+            .withUnretained(self)
+            .subscribe { (vc, _) in
+                vc.viewModel.resetData()
+            }
+            .disposed(by: disposeBag)
+        
+        output.newTap
+            .withUnretained(self)
+            .subscribe { (vc, _) in
+                vc.viewModel.newData()
+            }
+            .disposed(by: disposeBag)
+
+        output.searchText
+            .withUnretained(self)
+            .subscribe { (vc, value) in
+                print("====\(value)")
+                vc.viewModel.filterData(query: value)
+            }
+            .disposed(by: disposeBag)
+        
+        
+        
+        
+        viewModel.list  // VM -> VC (Output)
+            .asDriver(onErrorJustReturn: [])
+            .drive(tableView.rx.items(cellIdentifier: "ContactCell", cellType: UITableViewCell.self)) { (row, element, cell) in
+                cell.textLabel?.text = "\(element.name): \(element.age)세, \(element.number)"
+            }
+//            .bind(to: tableView.rx.items(cellIdentifier: "ContactCell", cellType: UITableViewCell.self)) { (row, element, cell) in
+//                cell.textLabel?.text = "\(element.name): \(element.age)세 (\(element.number))"
+//            }
             .disposed(by: disposeBag)
         
         addButton.rx.tap
@@ -60,10 +110,12 @@ class SubjectViewController: UIViewController {
             }
             .disposed(by: disposeBag)
         
-        searchBar.rx.text.orEmpty    // Transforms control property of type `String?` into control property of type `String`.
-            .distinctUntilChanged()  // 기존과 같은 값은 받지 않음 (orEmpty 바로 뒤에 작성 일단..)
-            .withUnretained(self)
+        // VC -> VM (Input)
+        searchBar.rx.text
+            .orEmpty    // Transforms control property of type `String?` into control property of type `String`.
             .debounce(RxTimeInterval.seconds(1), scheduler: MainScheduler.instance)  // 기다리는 코드
+            .distinctUntilChanged()  // 기존과 같은 값은 받지 않음 (orEmpty 바로 뒤에 작성 일단..)  // Observable<String>  // 여기까지 output.searchText로 바뀜
+            .withUnretained(self)
             .subscribe { (vc, value) in
                 print("====\(value)")
                 vc.viewModel.filterData(query: value)

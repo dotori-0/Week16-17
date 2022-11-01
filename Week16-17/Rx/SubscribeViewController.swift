@@ -62,6 +62,18 @@ class SubscribeViewController: UIViewController {
             }
             .disposed(by: disposeBag)
         
+        
+        // 데이터의 Stream이 바뀐다
+        let sampleButton = button        // UIButton?
+        let sampleRx = sampleButton?.rx  // Reactive<UIButton>?
+        let sampleTap = sampleRx?.tap    // ControlEvent<Void>?
+        
+            .subscribe { [weak self] _ in
+                self?.label.text = "안녕 반가워"
+            }
+            .disposed(by: disposeBag)
+        
+        
         // 2. withUnretained
         button.rx.tap
             .withUnretained(self)

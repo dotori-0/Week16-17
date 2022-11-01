@@ -27,6 +27,40 @@ class ValidationViewController: UIViewController {
     }
     
     func bind() {
+        // Input & Output
+        // After
+        let input = ValidationViewModel.Input(text: nameTextField.rx.text,
+                                              tap: stepButton.rx.tap)
+        let output = viewModel.transform(input: input)
+    
+        output.text
+            .drive(validationLabel.rx.text)
+            .disposed(by: disposeBag)
+        
+        output.validation
+            .bind(to: stepButton.rx.isEnabled, validationLabel.rx.isHidden)  // bind 대신 subscribe를 쓰고 에러와 컴플릿을 써도 되지만 목적에 맞게 만들어진 메서드를 사용하는 것이 낫다
+            .disposed(by: disposeBag)  // 자동으로 리소스 정리
+        
+        
+        // 텍스트필드 글자 수에 따라 버튼 컬러 바꾸기
+        output.validation
+            .withUnretained(self)
+            .bind { (vc, value) in
+                let color: UIColor = value ? .systemPink : .lightGray
+                vc.stepButton.backgroundColor = color
+            }
+            .disposed(by: disposeBag)  // 자동으로 리소스 정리
+        
+        output.tap
+            .bind { _ in
+                print("SHOW ALERT")  // 연산 과정이 없으면 input과 output의 형태가 동일
+            }
+            .disposed(by: disposeBag)
+        
+        
+        
+        
+        // Before
         viewModel.validText  // BehaviorRelay<String>  // Output
             .asDriver()      // Driver<String>
             .drive(validationLabel.rx.text)
@@ -34,7 +68,7 @@ class ValidationViewController: UIViewController {
         
 //         상수로 만들기
         // validation: Observable<Bool>
-        let validation = nameTextField.rx.text       // String?
+        let validation = nameTextField.rx.text       // String?  // Input
                             .orEmpty                // String
                             .map { $0.count >= 8 }  // Bool
                             .share()  // share가 내부적으로 구성된 객체:  Subject, Relay
@@ -52,9 +86,9 @@ class ValidationViewController: UIViewController {
             }
             .disposed(by: disposeBag)  // 자동으로 리소스 정리
         
-        stepButton.rx.tap
+        stepButton.rx.tap  // Input  // ControlEvent<Void>
             .bind { _ in
-                print("SHOW ALERT")
+                print("SHOW ALERT")  // 연산 과정이 없으면 input과 output의 형태가 동일
             }
             .disposed(by: disposeBag)
         
