@@ -12,6 +12,7 @@ class CObservable<T> {
     
     var value: T {
         didSet {
+            print("lister가 nil?: \(listener == nil)")
             listener?(value)
         }
     }

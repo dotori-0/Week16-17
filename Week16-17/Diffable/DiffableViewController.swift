@@ -33,78 +33,80 @@ class DiffableViewController: UIViewController {
         
 //        APIService.searchPhoto(query: "apple")
 
-//        searchBar.delegate = self
-        
-        collectionView.collectionViewLayout = createLayout()
+        configureHierarchy()
         configureDataSource()
-        collectionView.delegate = self  // Diffable은 데이터소스만 있기 때문에 delegate는 필요
-        
-        
+
         bindData()
     }
 
     func bindData() {
-//        viewModel.photoList.bind { photo in
-//            var snapshot = NSDiffableDataSourceSnapshot<Int, SearchResult>()
-//            snapshot.appendSections([0])
-//            snapshot.appendItems(photo.results)
-//            self.dataSource.apply(snapshot)
-//        }
+        viewModel.photoList.bind { photo in
+            var snapshot = NSDiffableDataSourceSnapshot<Int, SearchResult>()
+            snapshot.appendSections([0])
+            snapshot.appendItems(photo.results)
+            self.dataSource.apply(snapshot)
+        }
         
-        viewModel.photoList
-            .withUnretained(self)
-            .subscribe { (vc, photo) in
-                var snapshot = NSDiffableDataSourceSnapshot<Int, SearchResult>()
-                snapshot.appendSections([0])
-                snapshot.appendItems(photo.results)
-                vc.dataSource.apply(snapshot)
-            } onError: { error in  // 노티피케이션이기 때문에 바로 dispose 된다
-                print("====error: \(error)")
-            } onCompleted: {
-                print("Completed")
-            } onDisposed: {
-                print("Disposed")
-            }
+//        viewModel.photoList
+//            .withUnretained(self)
+//            .subscribe { (vc, photo) in
+//                var snapshot = NSDiffableDataSourceSnapshot<Int, SearchResult>()
+//                snapshot.appendSections([0])
+//                snapshot.appendItems(photo.results)
+//                vc.dataSource.apply(snapshot)
+//            } onError: { error in  // 노티피케이션이기 때문에 바로 dispose 된다
+//                print("====error: \(error)")
+//            } onCompleted: {
+//                print("Completed")
+//            } onDisposed: {
+//                print("Disposed")
+//            }
+////            .disposed(by: disposeBag)
+////            .disposed(by: DisposeBag())  // 바로 dispose가 되어 버린다. 새로운 인스턴스로 교체를 해 버리게 되어서 수동으로 구독을 해제하는 것처럼 동작하게 됨
+//            .dispose()  //.disposed(by: DisposeBag())와 거의 동일
+//
+//        searchBar
+//            .rx
+//            .text
+//            .orEmpty
+//            .debounce(.seconds(1), scheduler: MainScheduler.instance)
+//            .distinctUntilChanged()
+//            .withUnretained(self)
+//            .subscribe { (vc, value) in
+//                vc.viewModel.requestSearchPhoto(query: value)
+//            }
 //            .disposed(by: disposeBag)
-//            .disposed(by: DisposeBag())  // 바로 dispose가 되어 버린다. 새로운 인스턴스로 교체를 해 버리게 되어서 수동으로 구독을 해제하는 것처럼 동작하게 됨
-            .dispose()  //.disposed(by: DisposeBag())와 거의 동일
-
-        searchBar
-            .rx
-            .text
-            .orEmpty
-            .debounce(.seconds(1), scheduler: MainScheduler.instance)
-            .distinctUntilChanged()
-            .withUnretained(self)
-            .subscribe { (vc, value) in
-                vc.viewModel.requestSearchPhoto(query: value)
-            }
-            .disposed(by: disposeBag)
     }
 }
 
 extension DiffableViewController: UICollectionViewDelegate {
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+//    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
 //        let item = list[indexPath.item]
 //        guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
-                
+//
 //        let alert = UIAlertController(title: item, message: "클릭!", preferredStyle: .alert)
 //        let ok = UIAlertAction(title: "확인", style: .cancel)
 //        alert.addAction(ok)
 //        present(alert, animated: true)
+//    }
+}
+
+extension DiffableViewController: UISearchBarDelegate {
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+//        var snapshot = dataSource.snapshot()
+//        snapshot.appendItems([searchBar.text!])
+//        dataSource.apply(snapshot, animatingDifferences: true)
+        viewModel.requestSearchPhoto(query: searchBar.text!)
     }
 }
 
-//extension DiffableViewController: UISearchBarDelegate {
-//    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-////        var snapshot = dataSource.snapshot()
-////        snapshot.appendItems([searchBar.text!])
-////        dataSource.apply(snapshot, animatingDifferences: true)
-//        viewModel.requestSearchPhoto(query: searchBar.text!)
-//    }
-//}
-
 extension DiffableViewController {
+    private func configureHierarchy() {
+        searchBar.delegate = self
+        collectionView.collectionViewLayout = createLayout()
+        collectionView.delegate = self  // Diffable은 데이터소스만 있기 때문에 delegate는 필요
+    }
+    
     private func createLayout() -> UICollectionViewLayout {
         let config = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
         let layout = UICollectionViewCompositionalLayout.list(using: config)
